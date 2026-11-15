@@ -1,0 +1,71 @@
+{
+  "expo": {
+    "name": "Paraná Bus",
+    "slug": "parana-bus",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "paranabus",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "ar.edu.uner.paranabus"
+    },
+    "android": {
+      "package": "ar.edu.uner.paranabus",
+      "permissions": [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION",
+        "CAMERA",
+        "VIBRATE"
+      ],
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#147D92"
+      }
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Paraná Bus usa la cámara para leer QR y adjuntar fotos."
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Paraná Bus usa tu ubicación para mostrar paradas cercanas."
+        }
+      ],
+      "expo-image-picker",
+      "expo-secure-store",
+      "expo-notifications",
+      "expo-sqlite",
+      "expo-video",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash.png",
+          "backgroundColor": "#147D92",
+          "imageWidth": 200
+        }
+      ],
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "Paraná Bus usa Face ID para confirmar tu identidad al reabrir la app."
+        }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "usesCleartextTraffic": true
+          }
+        }
+      ]
+    ],
+    "icon": "./assets/icon.png"
+  }
+}
