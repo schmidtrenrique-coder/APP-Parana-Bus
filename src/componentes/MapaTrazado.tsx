@@ -112,9 +112,6 @@ export default function MapaTrazado({
         scrollEnabled={false}
         setSupportMultipleWindows={false}
         onError={() => setErrorMapa(true)}
-        onHttpError={event => {
-          if (event.nativeEvent.statusCode >= 400) setErrorMapa(true);
-        }}
       />
     </View>
   );
