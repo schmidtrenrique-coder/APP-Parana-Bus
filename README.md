@@ -1,138 +1,119 @@
-# Paraná Bus
+Paraná Bus es una aplicación para celular que hice para el Trabajo Integrador de Desarrollo para Móviles (UNER, 2026). La pidió Silvina Ferreyra, directora de Transporte de la Municipalidad de Paraná, para que la gente pueda ver las líneas de colectivo, dónde están las paradas, a qué hora pasa cada uno y si ese día hay algún desvío. También permite avisar cuando un colectivo se demora. Hice el trabajo de forma individual.
 
-Aplicación móvil para consultar el transporte público de Paraná. Base desarrollada con React Native, Expo Router y TypeScript.
+Está hecha con React Native y Expo (SDK 54), con TypeScript, y usa la API que nos dio la cátedra.
 
-## Requisitos
-- Node.js LTS compatible con Expo SDK 54.
-- npm.
-- API de Transporte Público de la cátedra en ejecución o publicada.
+## Qué entrego
 
-## Configurar la API
-1. Copiar `.env.example` como `.env`.
-2. Definir `EXPO_PUBLIC_API_URL` con la dirección de la API.
-   - Emulador Android: normalmente `http://10.0.2.2:3000`.
-   - Teléfono físico: `http://IP_DE_TU_PC:3000` (ambos en la misma Wi-Fi).
-   - API publicada: usar su dirección `https://`.
-3. Comprobar que `GET /salud` responda correctamente desde el navegador del dispositivo.
+- **Este repositorio**, con el código de la app (`app/`, `src/`, `assets/`, `app.json` y `eas.json`) y la parte de la API que programé (`back/`).
+- **El APK** de la app, generado con `eas build --platform android --profile preview`: [página del build](https://expo.dev/accounts/schmidtrenrique/projects/parana-bus/builds/2823732b-4fed-416a-b7eb-5d16ba319e81).
+- **El video** de la defensa, en el enlace de Drive que figura en la entrega.
 
-No usar `localhost` desde un teléfono físico: apuntaría al propio teléfono.
+## Qué tiene cada pestaña
 
-## Ejecutar
-```bash
-npm install
-npx expo install --fix
-npx expo start
-```
+- **Inicio:** muestra primero mis favoritos con los próximos horarios, después los avisos de hoy, las paradas cercanas en un mapa y las líneas.
+- **Líneas:** la lista de las 14 líneas. Al entrar a una se ve si funciona normal o tiene un aviso, el recorrido de ida y de vuelta en el mapa, las paradas en orden y los horarios de hábil, sábado, domingo y feriado. Desde esta pestaña se descargan los datos para poder usar la app sin conexión.
+- **Paradas:** un mapa con las paradas cercanas, un buscador por nombre y el lector de códigos QR. Al entrar a una parada se ven las líneas que pasan, los próximos horarios, una flecha que indica para qué lado queda, un botón para abrirla en la app de mapas del celular, recordatorios y los reportes de otros pasajeros.
+- **Avisos:** los avisos vigentes, con las líneas que afectan, el recorrido alternativo en el mapa y un video corto que se puede guardar para verlo sin conexión.
+- **Yo:** para registrarse e ingresar, ver los favoritos y los recordatorios, y elegir opciones como el modo claro u oscuro.
 
-## APK de prueba
-```bash
-npm install -g eas-cli
-eas login
-eas build:configure
-eas build --platform android --profile preview
-```
+La app no dice en cuántos minutos llega un colectivo porque no tienen GPS. Por eso siempre muestra el horario de la tabla.
 
-## Estado de implementación
-- [x] Navegación principal y pantallas de líneas, paradas, avisos y perfil.
-- [x] Cliente HTTP común con manejo de errores de la API.
-- [x] Servicios conectados a líneas, paradas, horarios y avisos.
-- [x] Inicio de sesión y registro preparados con token en SecureStore.
-- [x] Base SQLite inicial para favoritos y cola de reportes.
-- [x] Completar autenticación y sincronización de favoritos con la API.
-- [x] Persistir líneas, paradas, horarios y feriados sin conexión (descarga manual desde la pestaña Líneas).
-- [x] Escanear QR de paradas y abrir su detalle.
-- [x] Buscar paradas cercanas con permiso de ubicación y mostrarlas en mapa.
-- [x] Crear reportes de demora, adjuntar foto y confirmar reportes recientes.
-- [x] Guardar reportes sin conexión y permitir su sincronización manual posterior.
-- [x] Programar recordatorios locales 10 minutos antes de los próximos servicios y administrarlos desde la pestaña Yo.
-- [x] Preparar el registro de tokens Expo y la preferencia de avisos push en el cliente móvil (requiere backend de notificaciones habilitado).
-- [x] Mostrar el trazado de cada recorrido (ida y vuelta) en el mapa desde el detalle de línea.
-- [x] Avisos con recorrido alternativo en mapa, video (si la API lo provee) y fechas/líneas legibles.
-- [x] Pruebas funcionales en Expo Go y en APK de prueba instalada en el emulador Pixel 8.
+## Cómo probarla
 
-Los mocks originales se conservan como material de referencia, pero los servicios de las pantallas principales ya consultan la API. No se debe presentar la información como real hasta configurar y probar una instancia accesible de la API.
+La app necesita que la API esté funcionando para mostrar datos. Hay dos formas de abrirla.
 
+**Lo que hace falta en los dos casos:** Node.js 24 o más nuevo, Android Studio con un emulador de Android (usé un Pixel 8 con Android 14) y la API de la cátedra funcionando.
 
-## Horarios sin conexión
+### 1. Levantar la API
+La API está en la carpeta `back/`, con mi parte implementada. Dentro de la carpeta de la API se ejecuta `pnpm install`, `pnpm db:reiniciar` y `pnpm dev`. Para ver si anda, abrir `http://localhost:3000/salud` en el navegador.
 
-Desde la pestaña **Líneas** se puede descargar la tabla de horarios de cada línea y los feriados de 2026 y 2027. Los datos quedan guardados en SQLite y el detalle de línea consulta la tabla local según el tipo de día. La clasificación prioriza feriado, domingo, sábado y día hábil. En el detalle de parada, si falla la consulta de próximos servicios, se calculan localmente los siguientes servicios usando el tipo de día de hoy y, si hace falta, el de mañana. La descarga inicial requiere conexión.
+### 2. Opción A: instalar el APK
+Descargar el `.apk` desde la página del build y arrastrarlo a la ventana del emulador. La app se instala como «Paraná Bus» y se abre desde el menú de aplicaciones, sin Expo Go. El APK apunta a `http://10.0.2.2:3000` (desde el emulador, la computadora se llama `10.0.2.2`), así que funciona con la API corriendo en la misma computadora del emulador.
 
-## Cuenta y favoritos
+### 2. Opción B: ejecutar el código con Expo Go
+1. Copiar `.env.example` con el nombre `.env`. Para el emulador tiene que decir `EXPO_PUBLIC_API_URL=http://10.0.2.2:3000`.
+2. Ejecutar `npm install`, `npx expo install --fix` y `npx expo start -c`.
+3. En Expo Go (compatible con SDK 54) tocar *Enter URL manually* y escribir `exp://10.0.2.2:8081`. No usar la tecla `a` de la terminal, porque intenta reinstalar Expo Go y da error.
 
-La pestaña **Yo** permite ingresar o crear una cuenta de pasajero. El token de sesión se guarda con `expo-secure-store`; al abrir la app se consulta `/yo` para recuperar los datos de la cuenta. Si no hay conexión, se muestran los últimos datos de perfil y favoritos guardados en SQLite.
+El archivo `.npmrc` está para evitar un problema de versiones de React al instalar.
 
-Desde el detalle de una línea o parada se puede agregarla o quitarla de favoritos. Los cambios se envían a la API y luego se actualiza la copia local. Para usar estas funciones se necesita conexión y una cuenta.
+**Cuentas de prueba** (son las de los datos de ejemplo de la API):
 
+| Para | Email | Contraseña |
+|---|---|---|
+| Entrar como pasajero | `julian@mail.com` | `demo1234` |
+| Entrar como la Dirección de Transporte | `transporte@parana.demo.ar` | `demo1234` |
 
-## QR, ubicación y mapa
+## Cómo está organizado
 
-En la pestaña **Paradas** se puede escanear el QR de una parada. La app consulta el endpoint de resolución de QR y contempla el formato `PARANA:<paradaId>` como alternativa para abrir el recurso por su identificador.
+| Carpeta | Qué hay |
+|---|---|
+| `app/` | Las pantallas (pestañas, detalle de línea y de parada, reporte y QR) |
+| `src/tipos/` | Los datos que maneja la app (línea, parada, horario, aviso, reporte y usuario), como los pide el pedido del cliente |
+| `src/servicios/` | Todo lo que habla con la API y con el celular: el servicio principal (`api.ts`), la sesión, los avisos, los horarios, los reportes y las notificaciones |
+| `src/base-datos/db.ts` | La base de datos del celular (SQLite) |
+| `src/contexto/` | La sesión del usuario |
+| `src/componentes/` | Partes que se repiten: los mapas, la tarjeta de aviso, el video, la flecha y el cartel de «sin conexión» |
+| `src/hooks/`, `src/tema/`, `src/utilidades/` | Nombres de líneas y paradas, modo oscuro, y cuentas de distancia, horarios y ubicación |
+| `src/mocks/` | Datos de ejemplo que usé al principio, antes de tener la API |
+| `assets/` | El ícono, el ícono de Android y la pantalla de inicio |
+| `back/` | La API de la cátedra, con la parte que programé en `src/student-notifications/` |
+| `materials/` | Códigos QR, un video y un script para probar (ver el final) |
 
-La opción **Paradas cercanas** solicita permiso de ubicación mientras se usa la app y consulta la API con latitud, longitud, radio de 2 km y orden por distancia. Si la API no está disponible, intenta filtrar las paradas guardadas localmente usando sus coordenadas. Los resultados se muestran en un mapa con la ubicación del dispositivo y marcadores de paradas; al tocar un marcador se puede abrir el detalle. No se realiza seguimiento de colectivos.
+## Cómo cumple lo que pide la consigna
 
-La disponibilidad de cámara debe validarse en un dispositivo o emulador compatible. Para mostrar Google Maps en un APK Android de producción, configurar una clave de Google Maps en `android.config.googleMaps.apiKey` dentro de `app.json` antes de compilar (no incluir claves privadas en el repositorio público). Las coordenadas mostradas dependen de los datos reales devueltos por la API.
+| # | Lo que pide | Dónde está |
+|---|---|---|
+| 1 | Pantallas y navegación | Carpeta `app/`, con Expo Router |
+| 2 | Registro e ingreso, sesión guardada y huella | La sesión se guarda de forma segura con `expo-secure-store` (`sesion.ts`). Al volver a abrir la app pide huella, rostro o PIN con `expo-local-authentication` (`biometria.ts`); si el celular no tiene nada de eso, se puede usar la contraseña |
+| 3 | Usar la API con carga, vacío y error | `src/servicios/` y las pantallas: muestran un indicador de carga, mensajes cuando no hay datos y un botón «Reintentar» cuando hay un error |
+| 4 | Cámara y archivos | `expo-camera` para leer el QR (`app/qr.tsx`), `expo-image-picker` para la foto del reporte y `expo-file-system` para guardar fotos y videos en el celular (`archivos.ts`) |
+| 5 | Ubicación y mapas | `expo-location` para la ubicación. Los mapas (recorridos, desvíos, paradas y paradas cercanas) usan Leaflet con OpenStreetMap dentro de `react-native-webview`, así que no necesitan una clave de Google Maps. Si no se da el permiso de ubicación, la app sigue funcionando y se puede buscar por nombre |
+| 6 | Notificaciones locales | Un recordatorio 10 minutos antes de un horario, y un aviso cuando aparece un aviso nuevo en una línea favorita (`notificaciones.ts`) |
+| 7 | Datos guardados y estado de la red | `expo-sqlite` para los datos, `expo-sqlite/kv-store` para las preferencias (`preferencias.ts`) y `expo-network` para avisar cuando no hay internet |
+| 8 | Sensor o vibración | La flecha de la parada usa la brújula del celular (`FlechaParada.tsx`), y el celular vibra con `expo-haptics` al enviar un reporte, leer un QR o marcar un favorito |
+| 9 | Video | `expo-video` con los controles a la vista (`VideoAviso.tsx`) |
+| 10 | Ícono y pantalla de inicio | Nombre «Paraná Bus», ícono y pantalla de inicio propios en `assets/`, configurados en `app.json` |
 
+## Cómo lo pensé
 
-## Reportes de demoras
+- **Todo pasa por los servicios.** Las pantallas no hablan directo con la API: piden los datos a `src/servicios/`. Así, si cambia la API, solo hay que tocar esa carpeta. Además puse un tiempo máximo de espera, para que una pantalla no se quede cargando para siempre si no hay buena conexión.
+- **Se puede usar sin conexión.** Los recorridos, paradas, horarios y feriados se descargan una vez y se guardan en el celular. Los avisos y los reportes sí necesitan internet: sin conexión se muestran los últimos avisos descargados y la app aclara que pueden estar desactualizados, y los reportes quedan guardados hasta que vuelva la red.
+- **La sesión está protegida.** Guardé el token en `expo-secure-store` y nunca en `kv-store`, porque es lo que pide el cliente. Para volver a entrar, la app pide huella o PIN, y siempre hay una alternativa con contraseña.
+- **No invento horarios.** Todo lo que dice cuánto falta aclara «según la tabla».
+- **Modo claro y oscuro.** Armé dos paletas de colores (`src/tema/tema.ts`) y desde la pestaña Yo se puede elegir una o usar la del celular.
 
-Desde el detalle de una parada se puede crear un reporte para una de las líneas que pasan por allí. Se elige el motivo, se puede agregar un comentario y adjuntar una foto JPG, PNG o WEBP de hasta 5 MB. La foto se copia al almacenamiento privado de la app para conservarla si el reporte queda pendiente sin conexión. Para reportar se necesita una sesión iniciada.
+## La parte de la API que me tocó
 
-Cuando hay conexión, la app sube primero la foto a `POST /archivos` y luego crea el reporte con `POST /reportes-demora`. Si no hay conexión o el servidor no responde, guarda el reporte en SQLite con un identificador generado en el teléfono. Desde la pantalla de reporte se puede usar **Sincronizar ahora** para enviar la cola pendiente cuando vuelva la conexión. El mismo identificador se reutiliza en los reintentos para evitar duplicados. La cola conserva el identificador de la cuenta que creó cada reporte, para no enviarlo accidentalmente desde otra cuenta.
+La guía de la cátedra deja a cargo de los alumnos guardar los tokens de las notificaciones y enviarlas. Eso lo hice en `src/student-notifications/` de la API, que está en la carpeta `back/`. Son cuatro archivos: uno define la tabla de tokens, otro los guarda y los busca, otro envía los mensajes a Expo (de a 100, y descarta los tokens que ya no sirven) y otro conecta todo con el resto de la API. Los tests de la cátedra se corren con `pnpm test:notificaciones`. No modifiqué nada más de la API.
 
-En el detalle de parada se consultan los reportes recientes (ventana de 90 minutos). Un pasajero puede confirmar reportes de otras personas; el servidor impide confirmar el propio, confirmar reportes vencidos o repetir reportes de la misma línea y parada dentro de 15 minutos. Estas reglas se validan definitivamente en la API.
+## Qué probé
 
+Probé la app en un emulador Pixel 8 con Android 14, primero con Expo Go y después con el APK instalado, conectada a la API en mi computadora. Revisé que funcionen:
 
-## Notificaciones y recordatorios
+- los mapas en el APK instalado;
+- moverme por las pestañas (Inicio, Líneas, Paradas y Avisos) y entrar al detalle de líneas y paradas;
+- registrarme e ingresar, y que al volver a abrir la app me pida el PIN;
+- el mapa y la ubicación;
+- descargar los datos y usar la app con el modo avión;
+- los favoritos y los avisos;
+- los horarios de hábil, sábado, domingo y feriado;
+- el modo oscuro.
 
-Desde el detalle de una parada se puede programar un recordatorio local para cada uno de los próximos servicios. La app solicita permiso para notificar y agenda un aviso 10 minutos antes del horario de tabla. Los recordatorios se guardan en SQLite y se pueden cancelar desde la pestaña **Yo**. Son locales: no necesitan cuenta ni conexión una vez programados. Si faltan menos de 10 minutos para el servicio, no se permite crear el recordatorio porque la hora de aviso ya pasó.
+También publiqué un aviso de prueba con el script de `materials/`. Ejecuté `npm run typecheck` y no dio errores.
 
-La pestaña **Yo** también permite intentar activar avisos push para líneas favoritas. El cliente obtiene un token Expo, lo registra en `POST /dispositivos` y actualiza `avisosActivos` en `/yo`. El backend de la cátedra deja a cargo del alumno el módulo `src/student-notifications/`: el ZIP complementario `parana-bus-backend-notificaciones.zip` incorpora el almacenamiento de tokens y el envío a Expo. Para recibir avisos reales, hay que desplegar esa versión del backend y configurar `NOTIFICACIONES=expo`; si el servidor sigue respondiendo `501 NO_IMPLEMENTADO`, está ejecutando una versión anterior o incompleta. Para obtener el token Expo se necesita un `projectId` de EAS configurado en `extra.eas.projectId` (se puede generar con `eas build:configure`) y probar en un dispositivo con una development/preview build compatible; Expo Go no sirve para validar push en SDK 54. Las notificaciones locales sí funcionan sin ese backend.
+## Lo que no pude hacer o quedó pendiente
 
+- **Notificaciones push desde el servidor.** Expo Go de Android no las recibe (desde el SDK 53), así que solo se pueden ver con la app instalada. Con Expo Go se ven las notificaciones locales. La parte del servidor está hecha.
+- **Vibración y cámara en el emulador.** El emulador no vibra y no tiene una cámara real. Para probar el flujo del QR agregué un campo donde se puede escribir el código de la parada, que hace lo mismo que el escaneo.
+- **Mapas sin conexión.** Usan OpenStreetMap, así que las zonas que no se vieron antes necesitan internet para cargarse.
+- **Mapa en modo oscuro.** El mapa sigue claro.
+- **La dirección de la API en el APK.** Quedó grabada como `http://10.0.2.2:3000`, que sirve para el emulador. Para usarlo en un celular de verdad habría que cambiarla en `eas.json` y generar el APK de nuevo.
+- **iPhone.** No lo probé.
 
-## Avisos, desvíos y recorridos en mapa (Ajustes 08)
+## Material de prueba
 
-El detalle de línea dibuja el trazado de cada sentido con un mapa de solo lectura (marcador verde al inicio, rojo al final). La visualización de recorridos y desvíos utiliza Leaflet dentro de `react-native-webview`, con cartografía de OpenStreetMap, para evitar la dependencia de una clave de Google Maps en esos mapas. La pestaña **Avisos** consulta los avisos vigentes, muestra el nombre de las líneas afectadas, las fechas de vigencia y, si el aviso trae `trazadoAlternativo`, dibuja el desvío en el mapa. Si trae `videoUrl`, aparece el botón «Ver video del aviso»; el reproductor se crea recién al tocarlo. Se puede actualizar deslizando hacia abajo. La actualización de avisos requiere conexión; la app puede mostrar la última copia guardada.
+La carpeta `materials/` tiene cosas que usé para probar:
 
-Validación actualizada en **Ajustes 12**: la aplicación se compiló e instaló como APK de prueba y se verificaron las pestañas principales en el emulador Pixel 8. La reproducción de videos depende de que la API proporcione una URL válida.
-
-## Corrección de paginación (Ajustes 08)
-
-La API limita `porPagina` a 100 en `/lineas` y `/avisos` (1000 en paradas y 5000 en horarios). La app pedía 5000 en líneas y avisos, y la API respondía 400. Se corrigió en `src/servicios/lineas.ts` y `src/servicios/avisos.ts`. El `.env.example` ahora apunta a `10.0.2.2` para el emulador de Android.
-
-## Ajustes 09: cumplimiento de la consigna y del PRD
-
-**Identidad (requisito 10).** Ícono propio de 1024×1024 en PNG sin transparencias (`assets/icon.png`), ícono adaptativo de Android, pantalla de presentación configurada con `expo-splash-screen` y nombre «Paraná Bus». Expo Go no muestra el splash propio ni el ícono: se ven en un build instalado.
-
-**Autenticación y reingreso (requisito 2).** El token de sesión vive en `expo-secure-store`. Al reabrir la app, si había una sesión guardada, se pide huella, rostro o PIN con `expo-local-authentication` (se consulta antes si hay lector y algo registrado). El camino alternativo es la contraseña, que se vuelve a validar contra la API. Se puede desactivar desde la pestaña Yo.
-
-**Persistencia y conectividad (requisito 7).** SQLite guarda recorridos, horarios, usuario y cola de reportes. `expo-sqlite/kv-store` guarda preferencias y datos livianos (tema, bloqueo, avisos ya vistos y la última copia de los avisos); el token no va ahí, por pedido del PRD. `expo-network` (`useNetworkState`) muestra una franja cuando no hay internet, y los avisos descargados se muestran marcados como viejos. Toda llamada a la API se corta a los 12 segundos para que una red colgada no deje la pantalla en un spinner.
-
-**Archivos (requisito 4).** Con la API nueva de `expo-file-system` (`File`, `Directory`, `Paths`): las fotos de los reportes se copian de la caché a `Paths.document` y los videos de los avisos se pueden guardar para verlos sin conexión.
-
-**Sensores y háptica (requisito 8).** En el detalle de una parada, una flecha apunta hacia ella con la ubicación y el magnetómetro (sin brújula, indica el punto cardinal). Hay vibración al confirmar o enviar un reporte, al leer un QR y al marcar un favorito, y siempre acompaña a un mensaje en pantalla.
-
-**Notificaciones (requisito 6).** Locales: recordatorios de horario y un aviso cuando, al descargar los avisos, aparece uno nuevo en una línea favorita. Push remoto: lo envía la parte de la API de `src/student-notifications` y necesita un build instalado.
-
-**PRD.** El aviso se ve al abrir la línea afectada; el detalle de línea lista las paradas por nombre y en orden; los próximos servicios dicen «según la tabla» y cuánto falta; si terminó el servicio de hoy se informa el primero de mañana; el inicio muestra primero los favoritos con sus próximos horarios; la parada se puede abrir en la app de mapas del teléfono; y hay modo claro, oscuro o el del teléfono (el mapa se mantiene claro).
-
-### Qué no se pudo verificar
-Esta versión pasó una revisión estática (sin nombres indefinidos ni imports rotos), pero no se ejecutó. Falta correr `npm run typecheck` y probarla en el emulador.
-
-## Ajustes 10: horarios por día y paradas cercanas en el inicio
-
-- **Horarios de una línea por tipo de día.** El detalle de línea tiene un selector Hábil / Sábado / Domingo / Feriado. Arranca en el tipo de hoy (considera los feriados descargados) y funciona sin conexión, porque las tablas completas están en SQLite.
-- **Inicio con paradas cercanas.** Si la persona ya dio permiso de ubicación (o lo pide con el botón «Ver paradas cerca de mí»), el inicio muestra un mapa con las paradas más cercanas y los próximos horarios de las dos primeras, siempre «según la tabla». Si niega el permiso, aparece un enlace para buscar por nombre y el resto de la app sigue igual.
-
-## Ajustes 11: ubicación robusta e ingreso manual del QR
-
-- **Ubicación con límite de tiempo** (`src/utilidades/ubicacion.ts`). Si el teléfono no logra una posición en 7 segundos se usa la última conocida, y si no hay, se avisa con un botón de reintento, en lugar de dejar la pantalla cargando. En Inicio solo se muestran paradas a menos de 2 km.
-- **QR con alternativa.** `app/qr.tsx` suma un campo para escribir el código de la parada (por ejemplo `PARANA:par-101`), útil si no hay cámara o se niega el permiso. Pasa por la misma función `procesarQr` que el escaneo.
-
-
-## Ajustes 12: mapas de recorridos con OpenStreetMap y validación de APK
-
-- **Mapas de recorridos sin clave de Google Maps.** Se reemplazó la implementación nativa de `MapaTrazado` por una vista `react-native-webview` que carga Leaflet y utiliza los mapas de OpenStreetMap. Se conservan el trazado, los marcadores de inicio y fin y el ajuste de encuadre. El cambio se aplica a los recorridos de las líneas y a los desvíos de los avisos. Los mapas nativos de la pestaña **Paradas** y el mapa de paradas cercanas se conservaron.
-- **Dependencia.** Se incorporó `react-native-webview`, instalada con `npx expo install react-native-webview` para mantener compatibilidad con Expo SDK 54.
-- **Conectividad de mapas.** Leaflet y los mapas de OpenStreetMap pueden necesitar conexión para descargar recursos y zonas que todavía no se visualizaron. Durante las pruebas, los mapas previamente cargados siguieron visibles en modo avión gracias a los recursos disponibles en caché; esto no garantiza que cualquier zona nueva pueda abrirse sin conexión.
-- **Validación.** `npm run typecheck` finalizó sin errores. Se probó la navegación por Inicio, Líneas, Avisos y Paradas en Expo Go y luego en una APK de prueba instalada en el emulador Pixel 8. También se comprobó el reingreso con PIN y el acceso a los datos y mapas previamente disponibles al activar el modo avión.
-- **Build de prueba.** Generada con `eas build --platform android --profile preview` (EAS Build ID: `2823732b-4fed-416a-b7eb-5d16ba319e81`). Esta compilación fue instalada y validada en el emulador.
+- Códigos QR: tres son de paradas de verdad (`par-101`, `par-102` y `par-103`) y uno no es de Paraná Bus, para ver que la app avisa sin romperse. `hoja-de-qr-para-probar.png` los junta a todos.
+- `video-de-prueba-desvio.mp4` y `crear-aviso-con-video.ps1`: el video que trae la API de ejemplo no tiene imagen, así que este script (de PowerShell, con la API funcionando) sube un video real y publica un aviso en la Línea 5 con un recorrido alternativo. Se ejecuta con `powershell -ExecutionPolicy Bypass -File .\crear-aviso-con-video.ps1 -Video .\video-de-prueba-desvio.mp4`. Si se reinicia la base con `pnpm db:reiniciar`, el aviso se borra y hay que volver a ejecutarlo.
