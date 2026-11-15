@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="Paraná Bus" xmlns="http://www.topografix.com/GPX/1/1">
+  <trk>
+    <name>Cerca de Alameda y Urquiza (Paraná)</name>
+    <trkseg>
+      <trkpt lat="-31.73" lon="-60.526"><ele>70</ele><time>2026-11-14T12:00:00Z</time></trkpt>
+      <trkpt lat="-31.7304" lon="-60.5257"><ele>70</ele><time>2026-11-14T12:00:03Z</time></trkpt>
+      <trkpt lat="-31.7308" lon="-60.5254"><ele>70</ele><time>2026-11-14T12:00:06Z</time></trkpt>
+      <trkpt lat="-31.7312" lon="-60.5251"><ele>70</ele><time>2026-11-14T12:00:09Z</time></trkpt>
+      <trkpt lat="-31.7316" lon="-60.5248"><ele>70</ele><time>2026-11-14T12:00:12Z</time></trkpt>
+      <trkpt lat="-31.732" lon="-60.5246"><ele>70</ele><time>2026-11-14T12:00:15Z</time></trkpt>
+      <trkpt lat="-31.7316" lon="-60.5248"><ele>70</ele><time>2026-11-14T12:00:18Z</time></trkpt>
+      <trkpt lat="-31.7312" lon="-60.5251"><ele>70</ele><time>2026-11-14T12:00:21Z</time></trkpt>
+      <trkpt lat="-31.7308" lon="-60.5254"><ele>70</ele><time>2026-11-14T12:00:24Z</time></trkpt>
+      <trkpt lat="-31.7304" lon="-60.5257"><ele>70</ele><time>2026-11-14T12:00:27Z</time></trkpt>
+    </trkseg>
+  </trk>
+</gpx>
