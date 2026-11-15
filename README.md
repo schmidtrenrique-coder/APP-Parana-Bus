@@ -48,7 +48,7 @@ eas build --platform android --profile preview
 - [x] Preparar el registro de tokens Expo y la preferencia de avisos push en el cliente móvil (requiere backend de notificaciones habilitado).
 - [x] Mostrar el trazado de cada recorrido (ida y vuelta) en el mapa desde el detalle de línea.
 - [x] Avisos con recorrido alternativo en mapa, video (si la API lo provee) y fechas/líneas legibles.
-- [ ] Pruebas funcionales y build APK final.
+- [x] Pruebas funcionales en Expo Go y en APK de prueba instalada en el emulador Pixel 8.
 
 Los mocks originales se conservan como material de referencia, pero los servicios de las pantallas principales ya consultan la API. No se debe presentar la información como real hasta configurar y probar una instancia accesible de la API.
 
@@ -91,9 +91,9 @@ La pestaña **Yo** también permite intentar activar avisos push para líneas fa
 
 ## Avisos, desvíos y recorridos en mapa (Ajustes 08)
 
-El detalle de línea dibuja el trazado de cada sentido con un mapa de solo lectura (marcador verde al inicio, rojo al final). La pestaña **Avisos** consulta los avisos vigentes, muestra el nombre de las líneas afectadas, las fechas de vigencia y, si el aviso trae `trazadoAlternativo`, dibuja el desvío en el mapa. Si trae `videoUrl`, aparece el botón «Ver video del aviso»; el reproductor se crea recién al tocarlo. Se puede actualizar deslizando hacia abajo. Los avisos requieren conexión.
+El detalle de línea dibuja el trazado de cada sentido con un mapa de solo lectura (marcador verde al inicio, rojo al final). La visualización de recorridos y desvíos utiliza Leaflet dentro de `react-native-webview`, con cartografía de OpenStreetMap, para evitar la dependencia de una clave de Google Maps en esos mapas. La pestaña **Avisos** consulta los avisos vigentes, muestra el nombre de las líneas afectadas, las fechas de vigencia y, si el aviso trae `trazadoAlternativo`, dibuja el desvío en el mapa. Si trae `videoUrl`, aparece el botón «Ver video del aviso»; el reproductor se crea recién al tocarlo. Se puede actualizar deslizando hacia abajo. La actualización de avisos requiere conexión; la app puede mostrar la última copia guardada.
 
-Estado de validación: esta versión pasó solo una revisión de sintaxis. Falta compilar y probar en un dispositivo real contra la API (en particular el mapa en el APK, que necesita la clave de Google Maps, y la reproducción de video con una URL real de la API).
+Validación actualizada en **Ajustes 12**: la aplicación se compiló e instaló como APK de prueba y se verificaron las pestañas principales en el emulador Pixel 8. La reproducción de videos depende de que la API proporcione una URL válida.
 
 ## Corrección de paginación (Ajustes 08)
 
@@ -127,3 +127,12 @@ Esta versión pasó una revisión estática (sin nombres indefinidos ni imports 
 
 - **Ubicación con límite de tiempo** (`src/utilidades/ubicacion.ts`). Si el teléfono no logra una posición en 7 segundos se usa la última conocida, y si no hay, se avisa con un botón de reintento, en lugar de dejar la pantalla cargando. En Inicio solo se muestran paradas a menos de 2 km.
 - **QR con alternativa.** `app/qr.tsx` suma un campo para escribir el código de la parada (por ejemplo `PARANA:par-101`), útil si no hay cámara o se niega el permiso. Pasa por la misma función `procesarQr` que el escaneo.
+
+
+## Ajustes 12: mapas de recorridos con OpenStreetMap y validación de APK
+
+- **Mapas de recorridos sin clave de Google Maps.** Se reemplazó la implementación nativa de `MapaTrazado` por una vista `react-native-webview` que carga Leaflet y utiliza los mapas de OpenStreetMap. Se conservan el trazado, los marcadores de inicio y fin y el ajuste de encuadre. El cambio se aplica a los recorridos de las líneas y a los desvíos de los avisos. Los mapas nativos de la pestaña **Paradas** y el mapa de paradas cercanas se conservaron.
+- **Dependencia.** Se incorporó `react-native-webview`, instalada con `npx expo install react-native-webview` para mantener compatibilidad con Expo SDK 54.
+- **Conectividad de mapas.** Leaflet y los mapas de OpenStreetMap pueden necesitar conexión para descargar recursos y zonas que todavía no se visualizaron. Durante las pruebas, los mapas previamente cargados siguieron visibles en modo avión gracias a los recursos disponibles en caché; esto no garantiza que cualquier zona nueva pueda abrirse sin conexión.
+- **Validación.** `npm run typecheck` finalizó sin errores. Se probó la navegación por Inicio, Líneas, Avisos y Paradas en Expo Go y luego en una APK de prueba instalada en el emulador Pixel 8. También se comprobó el reingreso con PIN y el acceso a los datos y mapas previamente disponibles al activar el modo avión.
+- **Build de prueba.** Generada con `eas build --platform android --profile preview` (EAS Build ID: `2823732b-4fed-416a-b7eb-5d16ba319e81`). Esta compilación fue instalada y validada en el emulador.

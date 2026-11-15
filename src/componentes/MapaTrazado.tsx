@@ -1,61 +1,127 @@
-import { useRef } from "react";
+import { useMemo, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
-import MapView, { Marker, Polyline } from "react-native-maps";
-import { Coordenadas } from "../tipos/transporte";
+import { WebView } from "react-native-webview";
+import type { Coordenadas } from "../tipos/transporte";
 import { useColores } from "../tema/tema";
 
 interface Props {
   /** Puntos del recorrido, en orden. */
   trazado: Coordenadas[];
   color?: string;
-  /** Texto para el marcador del primer punto (por defecto "Inicio"). */
+  /** Texto para el marcador del primer punto. */
   etiquetaInicio?: string;
-  /** Texto para el marcador del último punto (por defecto "Fin"). */
+  /** Texto para el marcador del último punto. */
   etiquetaFin?: string;
   alto?: number;
 }
 
-const aLatLng = (c: Coordenadas) => ({ latitude: c.latitud, longitude: c.longitud });
-
-/**
- * Vista previa de un trazado sobre el mapa. Es de solo lectura (sin gestos) para no
- * interferir con el scroll de la pantalla donde se muestra.
- */
-export default function MapaTrazado({ trazado, color = "#147D92", etiquetaInicio = "Inicio", etiquetaFin = "Fin", alto = 200 }: Props) {
+export default function MapaTrazado({
+  trazado,
+  color = "#147D92",
+  etiquetaInicio = "Inicio",
+  etiquetaFin = "Fin",
+  alto = 200,
+}: Props) {
   const c = useColores();
-  const mapa = useRef<MapView>(null);
-  const puntos = (trazado ?? []).filter(p => Number.isFinite(p.latitud) && Number.isFinite(p.longitud)).map(aLatLng);
+  const [errorMapa, setErrorMapa] = useState(false);
+
+  const puntos = (trazado ?? []).filter(
+    p =>
+      Number.isFinite(p.latitud) &&
+      Number.isFinite(p.longitud) &&
+      p.latitud >= -90 &&
+      p.latitud <= 90 &&
+      p.longitud >= -180 &&
+      p.longitud <= 180
+  );
+
+  const html = useMemo(() => {
+    // Solo se interpolan coordenadas numéricas y textos serializados como JSON.
+    const coordenadas = JSON.stringify(puntos.map(p => [p.latitud, p.longitud]));
+    const inicio = JSON.stringify(etiquetaInicio).replace(/</g, "\\u003c");
+    const fin = JSON.stringify(etiquetaFin).replace(/</g, "\\u003c");
+    const trazo = JSON.stringify(/^#[0-9a-fA-F]{6}$/.test(color) ? color : "#147D92");
+
+    return `<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    html, body, #map { height: 100%; width: 100%; margin: 0; padding: 0; }
+    body { overflow: hidden; }
+    .leaflet-control-attribution { font-size: 9px !important; }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    const points = ${coordenadas};
+    const startLabel = ${inicio};
+    const endLabel = ${fin};
+    const routeColor = ${trazo};
+    const map = L.map('map', { zoomControl: false, attributionControl: true });
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+    }).addTo(map);
+    const line = L.polyline(points, { color: routeColor, weight: 5, opacity: 0.9 }).addTo(map);
+    L.marker(points[0]).addTo(map).bindPopup(startLabel);
+    if (points.length > 1) {
+      L.marker(points[points.length - 1]).addTo(map).bindPopup(endLabel);
+      map.fitBounds(line.getBounds(), { padding: [24, 24] });
+    } else {
+      map.setView(points[0], 15);
+    }
+  </script>
+</body>
+</html>`;
+  }, [puntos, color, etiquetaInicio, etiquetaFin]);
 
   if (puntos.length === 0) {
-    return <View style={[s.vacio, { height: 70, backgroundColor: c.secundario }]}><Text style={[s.vacioTexto, { color: c.suave }]}>No hay trazado disponible para mostrar en el mapa.</Text></View>;
+    return (
+      <View style={[s.vacio, { height: 70, backgroundColor: c.secundario }]}>
+        <Text style={[s.vacioTexto, { color: c.suave }]}>
+          No hay trazado disponible para mostrar en el mapa.
+        </Text>
+      </View>
+    );
   }
 
-  const ajustar = () => {
-    if (puntos.length > 1) {
-      mapa.current?.fitToCoordinates(puntos, { edgePadding: { top: 30, right: 30, bottom: 30, left: 30 }, animated: false });
-    }
-  };
+  if (errorMapa) {
+    return (
+      <View style={[s.fallback, { height: alto, backgroundColor: c.secundario }]}>
+        <Text style={[s.fallbackTitulo, { color: c.texto }]}>No se pudo cargar el mapa</Text>
+        <Text style={[s.vacioTexto, { color: c.suave }]}>
+          Revisá tu conexión a internet para visualizar el recorrido.
+        </Text>
+      </View>
+    );
+  }
 
-  return <View style={[s.contenedor, { height: alto, backgroundColor: c.borde }]}>
-    <MapView
-      ref={mapa}
-      style={StyleSheet.absoluteFill}
-      initialRegion={{ ...puntos[0], latitudeDelta: 0.02, longitudeDelta: 0.02 }}
-      onMapReady={ajustar}
-      scrollEnabled={false}
-      zoomEnabled={false}
-      rotateEnabled={false}
-      pitchEnabled={false}
-    >
-      {puntos.length > 1 ? <Polyline coordinates={puntos} strokeColor={color} strokeWidth={4} /> : null}
-      <Marker coordinate={puntos[0]} title={etiquetaInicio} pinColor="green" />
-      {puntos.length > 1 ? <Marker coordinate={puntos[puntos.length - 1]} title={etiquetaFin} pinColor="red" /> : null}
-    </MapView>
-  </View>;
+  return (
+    <View style={[s.contenedor, { height: alto, backgroundColor: c.borde }]}>
+      <WebView
+        originWhitelist={["*"]}
+        source={{ html }}
+        style={s.webview}
+        javaScriptEnabled
+        domStorageEnabled
+        scrollEnabled={false}
+        setSupportMultipleWindows={false}
+        onError={() => setErrorMapa(true)}
+      />
+    </View>
+  );
 }
 
 const s = StyleSheet.create({
   contenedor: { borderRadius: 10, overflow: "hidden", marginTop: 10 },
+  webview: { flex: 1, backgroundColor: "transparent" },
   vacio: { borderRadius: 10, marginTop: 10, justifyContent: "center", padding: 12 },
   vacioTexto: { fontSize: 12 },
+  fallback: { borderRadius: 10, marginTop: 10, justifyContent: "center", alignItems: "center", padding: 16 },
+  fallbackTitulo: { fontSize: 14, fontWeight: "800", marginBottom: 5 },
 });
